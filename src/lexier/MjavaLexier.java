@@ -25,7 +25,7 @@ public class MjavaLexier {
 
 	private StringBuffer buffer = new StringBuffer(); // 缓存当前的字符串用于判断是否是关键字
 
-	private int line = 1; // 行号，文件起始位置是第一行
+	public int line = 1; // 行号，文件起始位置是第一行
 
 	private int column = 0; // 列号，文件起始位置是第一列
 

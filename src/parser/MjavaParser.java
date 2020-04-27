@@ -2,7 +2,6 @@ package parser;
 
 import java.io.*;
 
-
 import lexier.MjavaLexier;
 import lexier.Token;
 import lexier.Token.TokenType;
@@ -15,6 +14,7 @@ public class MjavaParser {
 	private FileWriter out = null;//输出信息
 	
 	//语句节点
+	private SyntaxNode statement;
 	private SyntaxNode if_Statement;
 	private SyntaxNode while_Statement;
 	private SyntaxNode print_Statement;
@@ -66,7 +66,7 @@ public class MjavaParser {
 	 */
 	private void syntaxError(String message) throws IOException {
 		out.write("\n>>>");
-		out.write("Syntax error "+message+" at line "+line+"\n");
+		out.write("Syntax error "+message+" at line "+lexier.line+"\n");
 	}
 	
     /**
@@ -84,7 +84,7 @@ public class MjavaParser {
     	}
     }
     
-    public SyntaxNode newDeclarationNode(Declaration type) {
+    public SyntaxNode newDeclarationNode(Declaration type) throws IOException {
     	SyntaxNode newNode = new SyntaxNode();
     	newNode.nodeType = NodeType.Declaration;
     	switch(type) {
@@ -103,26 +103,181 @@ public class MjavaParser {
     	case MethodDeclaration:
     		newNode.declaration = Declaration.MethodDeclaration;
     		break;
+    	default:
+    		syntaxError("Unexpected token at line: "+line);
+    		token = lexier.nextToken();
+    		break;
     	}
     	return newNode;
     }
     
-    public SyntaxNode newStatementNode(Declaration type) {
-    	
-    	
-    	return null;
+    public SyntaxNode newStatementNode() throws IOException {
+    	SyntaxNode newNode = new SyntaxNode();
+    	newNode.nodeType = NodeType.Statement;
+    	switch(token.getType()) {
+    	case KEY_WHILE:
+    		newNode.statement = Statement.While_Statement;
+    		break;
+    	case KEY_IF:
+    		newNode.statement = Statement.If_Statement;
+    		break;
+    	case KEY_PRINTLIN:
+    		newNode.statement = Statement.Print_Statement;
+    		break;
+    	case ASSIGN:
+    		newNode.statement = Statement.VarAssign_Statement;
+    		break;
+    	default:
+    		syntaxError("Unexpected token at line: "+line);
+    		token = lexier.nextToken();
+    		break;
+    	}
+    	return newNode;
     }
     
-    public SyntaxNode newExpressionNode(Declaration type) {
-    	
-    	
-    	return null;
+    public SyntaxNode newExpressionNode(Expression type) throws IOException {
+    	SyntaxNode newNode = new SyntaxNode();
+    	newNode.nodeType = NodeType.Expression;
+    	switch(type) {
+    	case Int_Expression:
+    		newNode.expression = Expression.Int_Expression;
+    		break;
+    	case True_Expression:
+    		newNode.expression = Expression.True_Expression;
+    		break;
+    	case False_Expression:
+    		newNode.expression = Expression.False_Expression;
+    		break;
+    	case Identifier_Expression:
+    		newNode.expression = Expression.Identifier_Expression;
+    		break;
+    	case This_Expression:
+    		newNode.expression = Expression.This_Expression;
+    		break;
+    	case NewArray_Expression:
+    		newNode.expression = Expression.NewArray_Expression;
+    		break;
+    	case New_Expression:
+    		newNode.expression = Expression.New_Expression;
+    		break;
+    	case Not_Expression:
+    		newNode.expression = Expression.Not_Expression;
+    		break;
+    	case Brace_Expression:
+    		newNode.expression = Expression.Brace_Expression;
+    		break;
+    	default:
+    		syntaxError("Unexpected token at line: "+line);
+    		token = lexier.nextToken();
+    		break;
+    	}
+    	return newNode;
     }
     
-    private SyntaxNode goal() {
-    	SyntaxNode goal_Node = new SyntaxNode();
-    	goal_Node.declaration = Declaration.Goal;
-    	SyntaxNode mainClassChild = new SyntaxNode();
+    private SyntaxNode goal() throws IOException {
+    	SyntaxNode goal_Node = newDeclarationNode(Declaration.Goal);
+    	SyntaxNode mainClassChild = mainClass();
+    	goal_Node.childList.add(mainClassChild);
+    	while(token.getType() != TokenType.EOF) {
+    		SyntaxNode classDeclarationChild = newDeclarationNode(Declaration.ClassDeclaration);
+    		goal_Node.childList.add(classDeclarationChild);
+    	}
 		return goal_Node;
+    }
+    
+    private SyntaxNode mainClass() {
+    	SyntaxNode mainClassNode = new SyntaxNode();
+    	mainClassNode.nodeType = NodeType.Declaration;
+    	mainClassNode.declaration = Declaration.MainClass;
+    	
+    	if(token.getToken().equals("class")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	match(TokenType.IDENTIFIER);
+    	
+    	if(token.getToken().equals("{")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("public")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("static")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("void")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("main")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("(")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("String")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("[")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("]")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	match(TokenType.IDENTIFIER);
+    	
+    	if(token.getToken().equals(")")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	if(token.getToken().equals("{")) {
+    		token = lexier.nextToken();
+    	}else {
+    		out.write("Unexpected token: "+token.getToken()+" at line "+lexier.line+"\n");
+    		token = lexier.nextToken();
+    	}
+    	
+    	SyntaxNode statementChild = statement();
     }
 }
