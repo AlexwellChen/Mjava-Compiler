@@ -1,6 +1,8 @@
 package parser;
 
 import java.io.*;
+
+
 import lexier.MjavaLexier;
 import lexier.Token;
 import lexier.Token.TokenType;
@@ -13,11 +15,31 @@ public class MjavaParser {
 	private FileWriter out = null;//输出信息
 	
 	//语句节点
-	static private SyntaxNode if_Statement;
-	static private SyntaxNode while_Statement;
-	static private SyntaxNode print_Statement;
-	static private SyntaxNode varAssigan_Statement;
-	static private SyntaxNode arrayAssign_Statement;
+	private SyntaxNode if_Statement;
+	private SyntaxNode while_Statement;
+	private SyntaxNode print_Statement;
+	private SyntaxNode varAssigan_Statement;
+	private SyntaxNode arrayAssign_Statement;
+	
+	//表达式节点
+	private SyntaxNode int_Expression;
+	private SyntaxNode true_Expression;
+	private SyntaxNode false_Expression;
+	private SyntaxNode identifier_Expression;
+	private SyntaxNode this_Expression;
+	private SyntaxNode newArray_Expression;
+	private SyntaxNode new_Expression;
+	private SyntaxNode not_Expression;
+	private SyntaxNode brace_Expression;
+	
+	//声明节点
+	private SyntaxNode mainClass;
+	private SyntaxNode classDeclaration;
+	private SyntaxNode varDeclaration;
+	private SyntaxNode methodDeclaration;
+	
+	//根节点
+	private SyntaxNode goal;
 	
 	
 	/**
@@ -62,5 +84,45 @@ public class MjavaParser {
     	}
     }
     
+    public SyntaxNode newDeclarationNode(Declaration type) {
+    	SyntaxNode newNode = new SyntaxNode();
+    	newNode.nodeType = NodeType.Declaration;
+    	switch(type) {
+    	case Goal:
+    		newNode.declaration = Declaration.Goal;
+    		break;
+    	case MainClass:
+    		newNode.declaration = Declaration.MainClass;
+    		break;
+    	case ClassDeclaration:
+    		newNode.declaration = Declaration.ClassDeclaration;
+    		break;
+    	case VarDeclaration:
+    		newNode.declaration = Declaration.VarDeclaration;
+    		break;
+    	case MethodDeclaration:
+    		newNode.declaration = Declaration.MethodDeclaration;
+    		break;
+    	}
+    	return newNode;
+    }
     
+    public SyntaxNode newStatementNode(Declaration type) {
+    	
+    	
+    	return null;
+    }
+    
+    public SyntaxNode newExpressionNode(Declaration type) {
+    	
+    	
+    	return null;
+    }
+    
+    private SyntaxNode goal() {
+    	SyntaxNode goal_Node = new SyntaxNode();
+    	goal_Node.declaration = Declaration.Goal;
+    	SyntaxNode mainClassChild = new SyntaxNode();
+		return goal_Node;
+    }
 }

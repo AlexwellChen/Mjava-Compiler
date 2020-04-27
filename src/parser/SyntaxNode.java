@@ -5,6 +5,7 @@ import lexier.MjavaLexier;
 import lexier.Token;
 
 enum Declaration{
+	Goal,
 	MainClass,
 	ClassDeclaration,
 	VarDeclaration,
@@ -46,11 +47,11 @@ enum NodeType{
 
 public class SyntaxNode {
 	
-	private NodeType nodeType;
-	private ArrayList<SyntaxNode> childList = new ArrayList<SyntaxNode>();
-	private Declaration declaration;
-	private Statement statement;
-	private Expression expression;
-	private int line;
-	private var_Type expType;
+	public NodeType nodeType;
+	public ArrayList<SyntaxNode> childList = new ArrayList<SyntaxNode>();
+	public Declaration declaration;
+	public Statement statement;
+	public Expression expression;
+	public int line;
+	public var_Type expType;
 }
