@@ -1,0 +1,8 @@
+int a = 222.33;
+int 1flow1 = 0;
+class hand#{}
+public void _APPosition_Input(){}
+if(myTest +> 1){}
+222.+;
+#;
+get(i).get(j);
