@@ -63,7 +63,7 @@ public class MjavaLexier {
 	/**
 	 * 将刚刚读入的字符回退到输入流当中
 	 */
-	private void pushBack() {
+	public void pushBack() {
 		try {
 			in.unread(buffer.charAt(buffer.length() - 1)); // 将最后一个字符回退到流中
 			buffer.deleteCharAt(buffer.length() - 1);
