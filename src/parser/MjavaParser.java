@@ -307,8 +307,12 @@ public class MjavaParser {
     		if(token.getToken().equals("[")) {
     			preToken = token;
     			token = lexier.nextToken();
-    			match(TokenType.RBRACKET);
-    			varDeclaratioNode.expType = var_Type.Int_Array;
+    			if(match(TokenType.RBRACKET)){
+    				varDeclaratioNode.expType = var_Type.Int_Array;
+    			}else {
+    				syntaxError(" Excepted ']' ");
+    				pushBackToken();//将不是]的token回退到字符流中
+    			}
     		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
     			token = preToken;
     			varDeclaratioNode.expType = var_Type.Int;
@@ -372,7 +376,9 @@ public class MjavaParser {
     	methodDeclaratioNode.declaration = Declaration.MethodDeclaration;
     	
     	match(TokenType.KEY_PUBLIC);
+    	matchType();
+    	match(TokenType.IDENTIFIER);
     	
-		return null;
+		return methodDeclaratioNode;
 	}
 }
