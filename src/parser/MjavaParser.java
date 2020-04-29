@@ -114,15 +114,17 @@ public class MjavaParser {
      * @param expected 期望的Token
      * @throws IOException
      */
-    public void match(TokenType expected) throws IOException {
+    public boolean match(TokenType expected) throws IOException {
     	if(token.getType().equals(expected)) {
     		preToken = token;
-    		token = lexier.nextToken();   		
+    		token = lexier.nextToken();
+    		return true;
     	}else {
     		syntaxError("unexpected token: ");
     		out.write(token.getToken());
     		preToken = token;
     		token = lexier.nextToken();  
+    		return false;
     	}
     }
     
@@ -273,9 +275,7 @@ public class MjavaParser {
     	
     	match(TokenType.IDENTIFIER);
     	
-    	if(token.getToken().equals("extends")) {
-    		preToken = token;
-    		token = lexier.nextToken();
+    	if(match(TokenType.KEY_EXTENDS)) {
     		match(TokenType.IDENTIFIER);
     	}
     	
@@ -301,17 +301,17 @@ public class MjavaParser {
     	varDeclaratioNode.nodeType = NodeType.Declaration;
     	varDeclaratioNode.declaration = Declaration.VarDeclaration;
     	
-    	if(token.getToken().equals("int")) {
-    		preToken = token;
-    		token = lexier.nextToken();
-    		if(token.getToken().equals("[")) {
-    			preToken = token;
-    			token = lexier.nextToken();
+    	if(match(TokenType.KEY_INT)) {
+    		if(match(TokenType.LBRACKET)) {
     			match(TokenType.RBRACKET);
     		}else {
     			pushBackToken();//将当前的Token回退到字符流中
     		}
     	}
+    	else if(match(TokenType.KEY_BOOLEAN)) {
+    		
+    	}
+    	
 		return null;
 	}
 }
