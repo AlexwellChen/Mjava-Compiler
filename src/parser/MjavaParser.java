@@ -73,9 +73,9 @@ public class MjavaParser {
 //	private SyntaxNode varDeclaration() {
 //		return null;
 //	}
-	private SyntaxNode methodDeclaration() {
-		return null;
-	}
+//	private SyntaxNode methodDeclaration() {
+//		return null;
+//	}
 	
 	//根节点
 //	private SyntaxNode goal;
@@ -301,16 +301,77 @@ public class MjavaParser {
     	varDeclaratioNode.nodeType = NodeType.Declaration;
     	varDeclaratioNode.declaration = Declaration.VarDeclaration;
     	
-    	if(match(TokenType.KEY_INT)) {
-    		if(match(TokenType.LBRACKET)) {
+    	if(token.getToken().equals("int")) {
+    		preToken = token;
+			token = lexier.nextToken();
+    		if(token.getToken().equals("[")) {
+    			preToken = token;
+    			token = lexier.nextToken();
     			match(TokenType.RBRACKET);
-    		}else {
+    			varDeclaratioNode.expType = var_Type.Int_Array;
+    		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
+    			token = preToken;
+    			varDeclaratioNode.expType = var_Type.Int;
     			pushBackToken();//将当前的Token回退到字符流中
     		}
+    	}else if(token.getToken().equals("boolean")) {
+    		preToken = token;
+			token = lexier.nextToken();
+    		varDeclaratioNode.expType = var_Type.Boolean;
+    	}else if(token.getType() == TokenType.IDENTIFIER) {
+    		preToken = token;
+			token = lexier.nextToken();
+    		varDeclaratioNode.expType = var_Type.Identifier;
+    	}else {
+    		preToken = token;
+			token = lexier.nextToken();
+    		syntaxError("unexpected VarType");
     	}
-    	else if(match(TokenType.KEY_BOOLEAN)) {
-    		
+    	
+    	match(TokenType.IDENTIFIER);
+    	
+		return varDeclaratioNode;
+	}
+    
+    private boolean matchType() throws IOException {
+    	if(token.getToken().equals("int")) {
+    		preToken = token;
+			token = lexier.nextToken();
+    		if(token.getToken().equals("[")) {
+    			preToken = token;
+    			token = lexier.nextToken();
+    			if(match(TokenType.RBRACKET)) {
+    				return true;//int []
+    			}else {
+    				return false;
+    			}
+    		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
+    			token = preToken;
+    			pushBackToken();//将当前的Token回退到字符流中
+    			return true;//int
+    		}
+    	}else if(token.getToken().equals("boolean")) {
+    		preToken = token;
+			token = lexier.nextToken();
+			return true;//boolean
+    	}else if(token.getType() == TokenType.IDENTIFIER) {
+    		preToken = token;
+			token = lexier.nextToken();
+			return true;//identifier
+    	}else {
+    		preToken = token;
+			token = lexier.nextToken();
+    		syntaxError("unexpected VarType");
+    		return false;
     	}
+    }
+    
+    private SyntaxNode methodDeclaration() throws IOException {
+    	SyntaxNode methodDeclaratioNode = new SyntaxNode();
+    	methodDeclaratioNode.nodeType = NodeType.Declaration;
+    	methodDeclaratioNode.declaration = Declaration.MethodDeclaration;
+    	
+    	match(TokenType.KEY_PUBLIC);
     	
 		return null;
 	}
