@@ -15,9 +15,9 @@ public class MjavaParser {
 	private FileWriter out = null;//输出信息
 	
 	//语句节点
-	private SyntaxNode statement() {
-		return null;
-	}
+//	private SyntaxNode statement() {
+//		return null;
+//	}
 	private SyntaxNode if_Statement() {
 		return null;
 	}
@@ -98,6 +98,8 @@ public class MjavaParser {
 		out = writer;
 	}
 	
+	//工具函数定义部分
+	
 	/**
 	 * 功能：输出错误信息到文件中
 	 * @param message 错误信息
@@ -128,6 +130,9 @@ public class MjavaParser {
     	}
     }
     
+    /**
+     * 回退当前token到字符流中
+     */
     public void pushBackToken() {
     	int length = token.getToken().length();
     	for(int i = 0; i<length; i++) {
@@ -135,6 +140,49 @@ public class MjavaParser {
     		token = preToken;
     	}
     }
+    
+    /**
+     * 判断当前token是否是定义变量的type
+     * @return
+     * @throws IOException
+     */
+    private boolean matchType() throws IOException {
+    	if(token.getToken().equals("int")) {
+    		preToken = token;
+			token = lexier.nextToken();
+    		if(token.getToken().equals("[")) {
+    			preToken = token;
+    			token = lexier.nextToken();
+    			if(match(TokenType.RBRACKET)) {
+    				return true;//int []
+    			}else {
+    				return false;
+    			}
+    		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
+    			token = preToken;
+    			pushBackToken();//将当前的Token回退到字符流中
+    			return true;//int
+    		}
+    	}else if(token.getToken().equals("boolean")) {
+    		preToken = token;
+			token = lexier.nextToken();
+			return true;//boolean
+    	}else if(token.getType() == TokenType.IDENTIFIER) {
+    		preToken = token;
+			token = lexier.nextToken();
+			return true;//identifier
+    	}else {
+    		preToken = token;
+			token = lexier.nextToken();
+    		syntaxError("unexpected type");
+    		return false;
+    	}
+    }
+    
+    /*
+     * 递归下降函数定义部分
+     */
+    
     
     public SyntaxNode newDeclarationNode(Declaration type) throws IOException {
     	SyntaxNode newNode = new SyntaxNode();
@@ -163,31 +211,6 @@ public class MjavaParser {
     	}
     	return newNode;
     }
-    
-//    public SyntaxNode newStatementNode() throws IOException {
-////    	SyntaxNode newNode = new SyntaxNode();
-////    	newNode.nodeType = NodeType.Statement;
-//    	switch(token.getType()) {
-//    	case KEY_WHILE:
-//    		SyntaxNode newNode = while_Statement();
-//    		break;
-//    	case KEY_IF:
-//    		SyntaxNode newNode = if_Statement();
-//    		break;
-//    	case KEY_PRINTLIN:
-//    		newNode.statement = Statement.Print_Statement;
-//    		break;
-//    	case ASSIGN:
-//    		newNode.statement = Statement.VarAssign_Statement;
-//    		break;
-//    	default:
-//    		syntaxError("Unexpected token at line: "+lexier.line);
-//    		preToken = token;
-//    		token = lexier.nextToken();
-//    		break;
-//    	}
-//    	
-//    }
     
 //    public SyntaxNode newExpressionNode(Expression type) throws IOException {
 //    	SyntaxNode newNode = new SyntaxNode();
@@ -333,42 +356,9 @@ public class MjavaParser {
     	}
     	
     	match(TokenType.IDENTIFIER);
-    	
+    	match(TokenType.SEMICOLON);
 		return varDeclaratioNode;
 	}
-    
-    private boolean matchType() throws IOException {
-    	if(token.getToken().equals("int")) {
-    		preToken = token;
-			token = lexier.nextToken();
-    		if(token.getToken().equals("[")) {
-    			preToken = token;
-    			token = lexier.nextToken();
-    			if(match(TokenType.RBRACKET)) {
-    				return true;//int []
-    			}else {
-    				return false;
-    			}
-    		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
-    			token = preToken;
-    			pushBackToken();//将当前的Token回退到字符流中
-    			return true;//int
-    		}
-    	}else if(token.getToken().equals("boolean")) {
-    		preToken = token;
-			token = lexier.nextToken();
-			return true;//boolean
-    	}else if(token.getType() == TokenType.IDENTIFIER) {
-    		preToken = token;
-			token = lexier.nextToken();
-			return true;//identifier
-    	}else {
-    		preToken = token;
-			token = lexier.nextToken();
-    		syntaxError("unexpected VarType");
-    		return false;
-    	}
-    }
     
     private SyntaxNode methodDeclaration() throws IOException {
     	SyntaxNode methodDeclaratioNode = new SyntaxNode();
@@ -378,7 +368,44 @@ public class MjavaParser {
     	match(TokenType.KEY_PUBLIC);
     	matchType();
     	match(TokenType.IDENTIFIER);
-    	
+    	match(TokenType.LPAREN);
+    	if(matchType()) {
+    		match(TokenType.IDENTIFIER);
+    		while(match(TokenType.COMMA)) {
+    			matchType();
+    			match(TokenType.IDENTIFIER);
+    		}
+    	}
+    	match(TokenType.RPAREN);
+    	match(TokenType.LBRACES);
+    	while(matchType()) {
+    		pushBackToken();//将type的token回退，便于创建VarDeclaration节点
+    		SyntaxNode varDeclarationChildNode = varDeclaration();
+    		methodDeclaratioNode.childList.add(varDeclarationChildNode);
+    	}
 		return methodDeclaratioNode;
 	}
+    
+    public SyntaxNode statement() throws IOException {
+    	SyntaxNode newNode = null;
+    	switch(token.getType()) {
+    	case KEY_WHILE:
+    		newNode = while_Statement();
+    		return newNode;
+    	case KEY_IF:
+    		newNode = if_Statement();
+    		return newNode;
+    	case KEY_PRINTLIN:
+    		newNode = print_Statement();
+    		return newNode;
+    	case ASSIGN:
+    		newNode = varAssigan_Statement();
+    		return newNode;
+    	default:
+    		syntaxError("Unexpected token at line: "+lexier.line);
+    		preToken = token;
+    		token = lexier.nextToken();
+    		return null;
+    	}
+    }
 }
