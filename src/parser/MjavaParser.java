@@ -9,7 +9,10 @@ import parser.SyntaxNode;
 
 public class MjavaParser {
 	Token token;//保存当前Token
-	Token preToken;
+	Token preToken;//前一个Token
+	Token ppreToken;//前两个Token
+	Token pppreToken;//前三个Token
+	
 	int line = 1;
 	MjavaLexier lexier;
 	private FileWriter out = null;//输出信息
@@ -18,23 +21,27 @@ public class MjavaParser {
 //	private SyntaxNode statement() {
 //		return null;
 //	}
-	private SyntaxNode if_Statement() {
-		return null;
-	}
-	private SyntaxNode while_Statement() {
-		return null;
-	}
-	private SyntaxNode print_Statement() {
-		return null;
-	}
-	private SyntaxNode varAssigan_Statement() {
-		return null;
-	}
-	private SyntaxNode arrayAssign_Statement() {
-		return null;
-	}
+//	private SyntaxNode if_Statement() {
+//		return null;
+//	}
+//	private SyntaxNode while_Statement() {
+//		return null;
+//	}
+//	private SyntaxNode print_Statement() {
+//		return null;
+//	}
+//	private SyntaxNode varAssigan_Statement() {
+//		return null;
+//	}
+//	private SyntaxNode arrayAssign_Statement() {
+//		return null;
+//	}
+
 	
 	//表达式节点
+	private SyntaxNode expression() {
+		return null;
+	}
 	private SyntaxNode int_Expression() {
 		return null;
 	}
@@ -118,14 +125,12 @@ public class MjavaParser {
      */
     public boolean match(TokenType expected) throws IOException {
     	if(token.getType().equals(expected)) {
-    		preToken = token;
-    		token = lexier.nextToken();
+    		getNextToken();
     		return true;
     	}else {
     		syntaxError("unexpected token: ");
     		out.write(token.getToken());
-    		preToken = token;
-    		token = lexier.nextToken();  
+    		getNextToken();
     		return false;
     	}
     }
@@ -134,11 +139,21 @@ public class MjavaParser {
      * 回退当前token到字符流中
      */
     public void pushBackToken() {
+    	lexier.pushBackWhitSpace();
     	int length = token.getToken().length();
     	for(int i = 0; i<length; i++) {
     		lexier.pushBack();
-    		token = preToken;
     	}
+    	token = preToken;
+		preToken = ppreToken;
+		ppreToken = pppreToken;
+    }
+    
+    public void getNextToken() throws IOException {
+    	pppreToken = ppreToken;
+    	ppreToken = preToken;
+    	preToken = token;
+    	token = lexier.nextToken();
     }
     
     /**
@@ -148,32 +163,26 @@ public class MjavaParser {
      */
     private boolean matchType() throws IOException {
     	if(token.getToken().equals("int")) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		if(token.getToken().equals("[")) {
-    			preToken = token;
-    			token = lexier.nextToken();
+    			getNextToken();
     			if(match(TokenType.RBRACKET)) {
     				return true;//int []
     			}else {
     				return false;
     			}
     		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
-    			token = preToken;
     			pushBackToken();//将当前的Token回退到字符流中
     			return true;//int
     		}
     	}else if(token.getToken().equals("boolean")) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
 			return true;//boolean
     	}else if(token.getType() == TokenType.IDENTIFIER) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
 			return true;//identifier
     	}else {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		syntaxError("unexpected type");
     		return false;
     	}
@@ -184,33 +193,33 @@ public class MjavaParser {
      */
     
     
-    public SyntaxNode newDeclarationNode(Declaration type) throws IOException {
-    	SyntaxNode newNode = new SyntaxNode();
-    	newNode.nodeType = NodeType.Declaration;
-    	switch(type) {
-    	case Goal:
-    		newNode.declaration = Declaration.Goal;
-    		break;
-    	case MainClass:
-    		newNode.declaration = Declaration.MainClass;
-    		break;
-    	case ClassDeclaration:
-    		newNode.declaration = Declaration.ClassDeclaration;
-    		break;
-    	case VarDeclaration:
-    		newNode.declaration = Declaration.VarDeclaration;
-    		break;
-    	case MethodDeclaration:
-    		newNode.declaration = Declaration.MethodDeclaration;
-    		break;
-    	default:
-    		syntaxError("Unexpected token at line: "+line);
-    		preToken = token;
-    		token = lexier.nextToken();
-    		break;
-    	}
-    	return newNode;
-    }
+//    public SyntaxNode newDeclarationNode(Declaration type) throws IOException {
+//    	SyntaxNode newNode = new SyntaxNode();
+//    	newNode.nodeType = NodeType.Declaration;
+//    	switch(type) {
+//    	case Goal:
+//    		newNode.declaration = Declaration.Goal;
+//    		break;
+//    	case MainClass:
+//    		newNode.declaration = Declaration.MainClass;
+//    		break;
+//    	case ClassDeclaration:
+//    		newNode.declaration = Declaration.ClassDeclaration;
+//    		break;
+//    	case VarDeclaration:
+//    		newNode.declaration = Declaration.VarDeclaration;
+//    		break;
+//    	case MethodDeclaration:
+//    		newNode.declaration = Declaration.MethodDeclaration;
+//    		break;
+//    	default:
+//    		syntaxError("Unexpected token at line: "+line);
+//    		preToken = token;
+//    		token = lexier.nextToken();
+//    		break;
+//    	}
+//    	return newNode;
+//    }
     
 //    public SyntaxNode newExpressionNode(Expression type) throws IOException {
 //    	SyntaxNode newNode = new SyntaxNode();
@@ -253,7 +262,8 @@ public class MjavaParser {
 //    }
     
     private SyntaxNode goal() throws IOException {
-    	SyntaxNode goal_Node = newDeclarationNode(Declaration.Goal);
+    	SyntaxNode goal_Node = new SyntaxNode();
+    	goal_Node.declaration = Declaration.Goal;
     	SyntaxNode mainClassChild = mainClass();
     	goal_Node.childList.add(mainClassChild);
     	while(token.getType() != TokenType.EOF) {
@@ -283,6 +293,7 @@ public class MjavaParser {
     	match(TokenType.RPAREN);   	
     	match(TokenType.LBRACES);   	
     	SyntaxNode statementChild = statement();
+    	
     	mainClassNode.childList.add(statementChild);  	
     	match(TokenType.RBRACES);    	
     	match(TokenType.RBRACES);
@@ -325,33 +336,27 @@ public class MjavaParser {
     	varDeclaratioNode.declaration = Declaration.VarDeclaration;
     	
     	if(token.getToken().equals("int")) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		if(token.getToken().equals("[")) {
-    			preToken = token;
-    			token = lexier.nextToken();
+    			getNextToken();
     			if(match(TokenType.RBRACKET)){
     				varDeclaratioNode.expType = var_Type.Int_Array;
     			}else {
-    				syntaxError(" Excepted ']' ");
+    				syntaxError(" Excepte ']' ");
     				pushBackToken();//将不是]的token回退到字符流中
     			}
     		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
-    			token = preToken;
     			varDeclaratioNode.expType = var_Type.Int;
     			pushBackToken();//将当前的Token回退到字符流中
     		}
     	}else if(token.getToken().equals("boolean")) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		varDeclaratioNode.expType = var_Type.Boolean;
     	}else if(token.getType() == TokenType.IDENTIFIER) {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		varDeclaratioNode.expType = var_Type.Identifier;
     	}else {
-    		preToken = token;
-			token = lexier.nextToken();
+    		getNextToken();
     		syntaxError("unexpected VarType");
     	}
     	
@@ -386,9 +391,13 @@ public class MjavaParser {
 		return methodDeclaratioNode;
 	}
     
-    public SyntaxNode statement() throws IOException {
+    private SyntaxNode statement() throws IOException {
     	SyntaxNode newNode = null;
     	switch(token.getType()) {
+    	case LBRACES:
+    		newNode = statementSeries();
+    		match(TokenType.RBRACES);
+    		return newNode;
     	case KEY_WHILE:
     		newNode = while_Statement();
     		return newNode;
@@ -399,13 +408,130 @@ public class MjavaParser {
     		newNode = print_Statement();
     		return newNode;
     	case ASSIGN:
-    		newNode = varAssigan_Statement();
+    		newNode = assigan_Statement();
     		return newNode;
     	default:
     		syntaxError("Unexpected token at line: "+lexier.line);
-    		preToken = token;
-    		token = lexier.nextToken();
+    		getNextToken();
     		return null;
     	}
     }
+    
+	private SyntaxNode statementSeries() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.Series_Statement;
+		
+		match(TokenType.LBRACES); 
+		while(!token.getToken().equals("}")) {//由于}与seriesNode无关，所以将match放在statement()中
+			SyntaxNode childNode = statement();
+			if(childNode != null) {
+				newNode.childList.add(childNode);
+			}
+		}
+		return newNode;
+	}
+	
+	private SyntaxNode if_Statement() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.If_Statement;
+		
+		match(TokenType.KEY_IF);
+		match(TokenType.LPAREN);
+		SyntaxNode expNode = expression();
+		newNode.childList.add(expNode);
+		match(TokenType.RPAREN);
+		SyntaxNode stateChild = statement();
+		if(stateChild != null) {
+			newNode.childList.add(stateChild);
+		}
+		match(TokenType.KEY_ELSE);
+		SyntaxNode _stateChild = statement();
+		if(_stateChild != null) {
+			newNode.childList.add(_stateChild);
+		}
+		return newNode;
+	}
+	
+	private SyntaxNode while_Statement() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.While_Statement;
+		
+		match(TokenType.KEY_WHILE);
+		match(TokenType.LPAREN);
+		SyntaxNode expNode = expression();
+		newNode.childList.add(expNode);
+		match(TokenType.RPAREN);
+		SyntaxNode stateChild = statement();
+		if(stateChild != null) {
+			newNode.childList.add(stateChild);
+		}
+		return newNode;
+	}
+	
+	private SyntaxNode print_Statement() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.Print_Statement;
+		
+		match(TokenType.KEY_PRINTLIN);
+		match(TokenType.LPAREN);
+		SyntaxNode expNode = expression();
+		newNode.childList.add(expNode);
+		match(TokenType.RPAREN);
+		match(TokenType.SEMICOLON);
+		return newNode;
+	}
+	
+	private SyntaxNode assigan_Statement() throws IOException {
+		SyntaxNode assignNode = null;
+		pushBackToken();
+		switch (token.getType()) {
+		case KEY_INT:
+			assignNode = varAssigan_Statement();
+			return assignNode;
+		case RBRACKET:
+
+			assignNode = arrayAssign_Statement();
+			return assignNode;
+		default:
+			syntaxError("Unexpected token at line: "+lexier.line);
+			getNextToken();
+    		return null;
+		}
+	}
+	
+	private SyntaxNode varAssigan_Statement() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.VarAssign_Statement;
+		
+		match(TokenType.IDENTIFIER);
+		match(TokenType.ASSIGN);
+		SyntaxNode expNode = expression();
+		newNode.childList.add(expNode);
+		match(TokenType.SEMICOLON);
+		return newNode;
+	}
+	
+	private SyntaxNode arrayAssign_Statement() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Statement;
+		newNode.statement = Statement.ArrayAssign_Statement;
+		
+		pushBackToken();
+		pushBackToken();
+		match(TokenType.IDENTIFIER);
+		match(TokenType.LBRACKET);
+		SyntaxNode expNode = expression();
+		newNode.childList.add(expNode);
+		match(TokenType.RBRACKET);
+		match(TokenType.ASSIGN);
+		SyntaxNode _expNode = expression();
+		newNode.childList.add(_expNode);
+		match(TokenType.SEMICOLON);
+		return newNode;
+	}
 }

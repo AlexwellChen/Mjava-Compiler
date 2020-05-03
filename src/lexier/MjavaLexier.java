@@ -36,7 +36,7 @@ public class MjavaLexier {
 		PushbackReader reader = null;
 		FileWriter writer= null;
 		try {
-			reader = new PushbackReader(new FileReader(inputFile),10);
+			reader = new PushbackReader(new FileReader(inputFile),100);
 			writer = new FileWriter(outputFile);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -54,6 +54,16 @@ public class MjavaLexier {
 			ch = (char) in.read();
 			buffer.append(ch);
 			column++;
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	
+	public void pushBackWhitSpace() {
+		try {
+			in.unread(' '); // 将一个空格回退到流中
+			column--;
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(-1);

@@ -24,7 +24,8 @@ enum Statement{
 	While_Statement,
 	Print_Statement,
 	VarAssign_Statement,
-	ArrayAssign_Statement
+	ArrayAssign_Statement,
+	Series_Statement
 }
 
 enum Expression{
