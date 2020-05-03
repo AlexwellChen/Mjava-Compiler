@@ -1,6 +1,7 @@
 package parser;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import lexier.MjavaLexier;
 import lexier.Token;
@@ -12,7 +13,16 @@ public class MjavaParser {
 	Token preToken;//前一个Token
 	Token ppreToken;//前两个Token
 	Token pppreToken;//前三个Token
-	
+	public ArrayList<TokenType> Exp_FirstSet = new ArrayList<TokenType>() {{
+		add(TokenType.INTEGERLITERAL);
+		add(TokenType.KEY_TRUE);
+		add(TokenType.KEY_FALSE);
+		add(TokenType.IDENTIFIER);
+		add(TokenType.KEY_THIS);
+		add(TokenType.KEY_NEW);
+		add(TokenType.LOGICAL_NOT);
+		add(TokenType.LPAREN);
+	}};
 	int line = 1;
 	MjavaLexier lexier;
 	private FileWriter out = null;//输出信息
@@ -36,40 +46,57 @@ public class MjavaParser {
 //	private SyntaxNode arrayAssign_Statement() {
 //		return null;
 //	}
-
-	
 	//表达式节点
-	private SyntaxNode expression() {
-		return null;
-	}
-	private SyntaxNode int_Expression() {
-		return null;
-	}
-	private SyntaxNode true_Expression() {
-		return null;
-	}
-	private SyntaxNode false_Expression() {
-		return null;
-	}
-	private SyntaxNode identifier_Expression() {
-		return null;
-	}
-	private SyntaxNode this_Expression() {
-		return null;
-	}
-	private SyntaxNode newArray_Expression() {
-		return null;
-	}
-	private SyntaxNode new_Expression() {
-		return null;
-	}
-	private SyntaxNode not_Expression() {
-		return null;
-	}
-	private SyntaxNode brace_Expression() {
-		return null;
-	}
+//	private SyntaxNode expression() {
+//		return null;
+//	}
+//	private SyntaxNode int_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode true_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode false_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode identifier_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode this_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode newArray_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode new_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode not_Expression() {
+//		return null;
+//	}
+//	private SyntaxNode brace_Expression() {
+//		return null;
+//	}
 	
+	//额外的语句节点
+//	private SyntaxNode a_Statement() {
+//		return null;
+//	}
+//	private SyntaxNode op_A() {
+//		return null;
+//	}
+//	private SyntaxNode exp_A() {
+//		return null;
+//	}
+//	private SyntaxNode length_A() {
+//		return null;
+//	}
+//	private SyntaxNode method_A() {
+//		return null;
+//	}
+//	private SyntaxNode null_A() {
+//		return null;
+//	}
 	//声明节点
 //	private SyntaxNode mainClass() {
 //		return null;
@@ -440,7 +467,9 @@ public class MjavaParser {
 		match(TokenType.KEY_IF);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
-		newNode.childList.add(expNode);
+		if(expNode != null) {
+			newNode.childList.add(expNode);
+		}
 		match(TokenType.RPAREN);
 		SyntaxNode stateChild = statement();
 		if(stateChild != null) {
@@ -462,7 +491,9 @@ public class MjavaParser {
 		match(TokenType.KEY_WHILE);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
-		newNode.childList.add(expNode);
+		if(expNode != null) {
+			newNode.childList.add(expNode);
+		}
 		match(TokenType.RPAREN);
 		SyntaxNode stateChild = statement();
 		if(stateChild != null) {
@@ -479,7 +510,9 @@ public class MjavaParser {
 		match(TokenType.KEY_PRINTLIN);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
-		newNode.childList.add(expNode);
+		if(expNode != null) {
+			newNode.childList.add(expNode);
+		}
 		match(TokenType.RPAREN);
 		match(TokenType.SEMICOLON);
 		return newNode;
@@ -511,7 +544,9 @@ public class MjavaParser {
 		match(TokenType.IDENTIFIER);
 		match(TokenType.ASSIGN);
 		SyntaxNode expNode = expression();
-		newNode.childList.add(expNode);
+		if(expNode != null) {
+			newNode.childList.add(expNode);
+		}
 		match(TokenType.SEMICOLON);
 		return newNode;
 	}
@@ -526,12 +561,302 @@ public class MjavaParser {
 		match(TokenType.IDENTIFIER);
 		match(TokenType.LBRACKET);
 		SyntaxNode expNode = expression();
-		newNode.childList.add(expNode);
+		if(expNode != null) {
+			newNode.childList.add(expNode);
+		}
 		match(TokenType.RBRACKET);
 		match(TokenType.ASSIGN);
 		SyntaxNode _expNode = expression();
 		newNode.childList.add(_expNode);
 		match(TokenType.SEMICOLON);
+		return newNode;
+	}
+	
+	private SyntaxNode expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		switch(token.getType()) {
+		case INTEGERLITERAL:
+			newNode = int_Expression();
+			return newNode;
+		case KEY_TRUE:
+			newNode = true_Expression();
+			return newNode;
+		case KEY_FALSE:
+			newNode = false_Expression();
+			return newNode;
+		case IDENTIFIER:
+			newNode = identifier_Expression();
+			return newNode;
+		case KEY_THIS:
+			newNode = this_Expression();
+			return newNode;
+		case KEY_NEW:
+			getNextToken();
+			if(token.getToken().equals("int")) {
+				newNode = newArray_Expression();//此时的token为int，直接从int开始匹配即可
+				return newNode;
+			}else if(token.getType() == TokenType.IDENTIFIER) {
+				newNode = new_Expression();//此时的token为IDENTIFIER
+				return newNode;
+			}else {
+				syntaxError("Unexpected token at line: "+lexier.line);
+	    		getNextToken();
+	    		return null;
+			}
+		case LOGICAL_NOT:
+			newNode = not_Expression();
+			return newNode;
+		case LPAREN:
+			newNode = brace_Expression();
+			return newNode;
+		default:
+			syntaxError("Unexpected token at line: "+lexier.line);
+    		getNextToken();
+    		return null;
+		}
+	}
+	
+	private SyntaxNode int_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.Int_Expression;
+		
+		match(TokenType.INTEGERLITERAL);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		
+		return newNode;
+	}
+	private SyntaxNode true_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.True_Expression;
+		match(TokenType.KEY_TRUE);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode false_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.False_Expression;
+		match(TokenType.KEY_FALSE);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode identifier_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.Identifier_Expression;
+		match(TokenType.IDENTIFIER);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode this_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.This_Expression;
+		match(TokenType.KEY_THIS);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode newArray_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.NewArray_Expression;
+		match(TokenType.KEY_INT);
+		match(TokenType.LBRACKET);
+		SyntaxNode expChild = expression();
+		if(expChild != null) {
+			newNode.childList.add(expChild);
+		}
+		match(TokenType.RBRACKET);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode new_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.New_Expression;
+		match(TokenType.IDENTIFIER);
+		match(TokenType.LPAREN);
+		match(TokenType.RPAREN);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode not_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.Not_Expression;
+		
+		match(TokenType.LOGICAL_NOT);
+		SyntaxNode expChild = expression();
+		if(expChild != null) {
+			newNode.childList.add(expChild);
+		}
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode brace_Expression() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.Expression;
+		newNode.expression = Expression.Brace_Expression;
+		
+		match(TokenType.LPAREN);
+		SyntaxNode expChild = expression();
+		if(expChild != null) {
+			newNode.childList.add(expChild);
+		}
+		match(TokenType.RPAREN);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	
+	private SyntaxNode a_Statement() throws IOException {
+		SyntaxNode newNode = null;
+		switch(token.getType()) {
+		case LOGICAL_AND:
+			newNode = op_A();
+			return newNode;
+		case LESS:
+			newNode = op_A();
+			return newNode;
+		case PLUS:
+			newNode = op_A();
+			return newNode;
+		case MINUS:
+			newNode = op_A();
+			return newNode;
+		case TIMES:
+			newNode = op_A();
+			return newNode;
+		case LBRACKET:
+			newNode = exp_A();
+			return newNode;
+		case POINT:
+			getNextToken();
+			if(token.getType() == TokenType.KEY_LENGTH) {
+				newNode = length_A();
+				return newNode;
+			}else if(token.getType() == TokenType.IDENTIFIER) {
+				newNode = method_A();
+				return newNode;
+			}else {
+				syntaxError("Unexpected token at line: "+lexier.line);
+	    		getNextToken();
+	    		return null;
+			}
+		default:
+			newNode = null_A();
+			return newNode;
+		}
+	}
+	private SyntaxNode op_A() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.A_exp;
+		newNode.a_exp = A_exp.op_A;
+		TokenType currentType= token.getType();
+		if(currentType == TokenType.LOGICAL_AND || currentType == TokenType.LESS || currentType == TokenType.PLUS || currentType ==TokenType. MINUS || currentType == TokenType.TIMES) {
+			SyntaxNode expChild = expression();
+			if(expChild != null) {
+				newNode.childList.add(expChild);
+			}
+			SyntaxNode a_statementChild = a_Statement();
+			if(a_statementChild != null) {
+				newNode.childList.add(a_statementChild);
+			}
+		}else {
+			syntaxError("Unexpected token at line: "+lexier.line);
+    		getNextToken();
+    		return null;
+		}
+		
+		return newNode;
+	}
+	private SyntaxNode exp_A() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.A_exp;
+		newNode.a_exp = A_exp.exp_A;
+		match(TokenType.LBRACKET);
+		SyntaxNode expChild = expression();
+		if(expChild != null) {
+			newNode.childList.add(expChild);
+		}
+		match(TokenType.RBRACKET);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode length_A() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.A_exp;
+		newNode.a_exp = A_exp.length_A;
+		match(TokenType.KEY_LENGTH);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode method_A() throws IOException {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.A_exp;
+		newNode.a_exp = A_exp.method_A;
+		
+		match(TokenType.IDENTIFIER);
+		match(TokenType.LPAREN);
+		if(Exp_FirstSet.contains(token.getType())) {
+			SyntaxNode expChild = expression();
+			if(expChild != null) {
+				newNode.childList.add(expChild);
+			}
+			while(match(TokenType.COMMA)) {
+				SyntaxNode _expChild = expression();
+				if(_expChild != null) {
+					newNode.childList.add(_expChild);
+				}
+			}
+		}
+		match(TokenType.RPAREN);
+		SyntaxNode a_statementChild = a_Statement();
+		if(a_statementChild != null) {
+			newNode.childList.add(a_statementChild);
+		}
+		return newNode;
+	}
+	private SyntaxNode null_A() {
+		SyntaxNode newNode = new SyntaxNode();
+		newNode.nodeType = NodeType.A_exp;
+		newNode.a_exp = A_exp.null_A;
+		
+		pushBackToken();
 		return newNode;
 	}
 }

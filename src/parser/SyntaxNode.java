@@ -40,10 +40,19 @@ enum Expression{
 	Brace_Expression
 }
 
+enum A_exp{
+	op_A,
+	exp_A,
+	length_A,
+	method_A,
+	null_A
+}
+
 enum NodeType{
 	Declaration,
 	Statement,
-	Expression
+	Expression,
+	A_exp
 }
 
 public class SyntaxNode {
@@ -53,6 +62,7 @@ public class SyntaxNode {
 	public Declaration declaration;
 	public Statement statement;
 	public Expression expression;
+	public A_exp a_exp;
 	public int line;
 	public var_Type expType;
 }
