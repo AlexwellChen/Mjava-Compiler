@@ -22,98 +22,10 @@ public class MjavaParser {
 		add(TokenType.KEY_NEW);
 		add(TokenType.LOGICAL_NOT);
 		add(TokenType.LPAREN);
-	}};
+	}};//expression的First集
 	int line = 1;
 	MjavaLexier lexier;
 	private FileWriter out = null;//输出信息
-	
-	//语句节点
-//	private SyntaxNode statement() {
-//		return null;
-//	}
-//	private SyntaxNode if_Statement() {
-//		return null;
-//	}
-//	private SyntaxNode while_Statement() {
-//		return null;
-//	}
-//	private SyntaxNode print_Statement() {
-//		return null;
-//	}
-//	private SyntaxNode varAssigan_Statement() {
-//		return null;
-//	}
-//	private SyntaxNode arrayAssign_Statement() {
-//		return null;
-//	}
-	//表达式节点
-//	private SyntaxNode expression() {
-//		return null;
-//	}
-//	private SyntaxNode int_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode true_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode false_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode identifier_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode this_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode newArray_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode new_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode not_Expression() {
-//		return null;
-//	}
-//	private SyntaxNode brace_Expression() {
-//		return null;
-//	}
-	
-	//额外的语句节点
-//	private SyntaxNode a_Statement() {
-//		return null;
-//	}
-//	private SyntaxNode op_A() {
-//		return null;
-//	}
-//	private SyntaxNode exp_A() {
-//		return null;
-//	}
-//	private SyntaxNode length_A() {
-//		return null;
-//	}
-//	private SyntaxNode method_A() {
-//		return null;
-//	}
-//	private SyntaxNode null_A() {
-//		return null;
-//	}
-	//声明节点
-//	private SyntaxNode mainClass() {
-//		return null;
-//	}
-//	private SyntaxNode classDeclaration() {
-//		return null;
-//	}
-//	private SyntaxNode varDeclaration() {
-//		return null;
-//	}
-//	private SyntaxNode methodDeclaration() {
-//		return null;
-//	}
-	
-	//根节点
-//	private SyntaxNode goal;
-	
 	
 	/**
 	 * @param input 输入测试文件路径
@@ -218,76 +130,7 @@ public class MjavaParser {
     /*
      * 递归下降函数定义部分
      */
-    
-    
-//    public SyntaxNode newDeclarationNode(Declaration type) throws IOException {
-//    	SyntaxNode newNode = new SyntaxNode();
-//    	newNode.nodeType = NodeType.Declaration;
-//    	switch(type) {
-//    	case Goal:
-//    		newNode.declaration = Declaration.Goal;
-//    		break;
-//    	case MainClass:
-//    		newNode.declaration = Declaration.MainClass;
-//    		break;
-//    	case ClassDeclaration:
-//    		newNode.declaration = Declaration.ClassDeclaration;
-//    		break;
-//    	case VarDeclaration:
-//    		newNode.declaration = Declaration.VarDeclaration;
-//    		break;
-//    	case MethodDeclaration:
-//    		newNode.declaration = Declaration.MethodDeclaration;
-//    		break;
-//    	default:
-//    		syntaxError("Unexpected token at line: "+line);
-//    		preToken = token;
-//    		token = lexier.nextToken();
-//    		break;
-//    	}
-//    	return newNode;
-//    }
-    
-//    public SyntaxNode newExpressionNode(Expression type) throws IOException {
-//    	SyntaxNode newNode = new SyntaxNode();
-//    	newNode.nodeType = NodeType.Expression;
-//    	switch(type) {
-//    	case Int_Expression:
-//    		newNode.expression = Expression.Int_Expression;
-//    		break;
-//    	case True_Expression:
-//    		newNode.expression = Expression.True_Expression;
-//    		break;
-//    	case False_Expression:
-//    		newNode.expression = Expression.False_Expression;
-//    		break;
-//    	case Identifier_Expression:
-//    		newNode.expression = Expression.Identifier_Expression;
-//    		break;
-//    	case This_Expression:
-//    		newNode.expression = Expression.This_Expression;
-//    		break;
-//    	case NewArray_Expression:
-//    		newNode.expression = Expression.NewArray_Expression;
-//    		break;
-//    	case New_Expression:
-//    		newNode.expression = Expression.New_Expression;
-//    		break;
-//    	case Not_Expression:
-//    		newNode.expression = Expression.Not_Expression;
-//    		break;
-//    	case Brace_Expression:
-//    		newNode.expression = Expression.Brace_Expression;
-//    		break;
-//    	default:
-//    		syntaxError("Unexpected token at line: "+line);
-//   	 	preToken = token;
-//    		token = lexier.nextToken();
-//    		break;
-//    	}
-//    	return newNode;
-//    }
-    
+
     private SyntaxNode goal() throws IOException {
     	SyntaxNode goal_Node = new SyntaxNode();
     	goal_Node.declaration = Declaration.Goal;
@@ -855,8 +698,6 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.A_exp;
 		newNode.a_exp = A_exp.null_A;
-		
-		pushBackToken();
 		return newNode;
 	}
 }
