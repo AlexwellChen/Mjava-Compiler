@@ -195,7 +195,7 @@ public class MjavaLexier {
 						return getToken(TokenType.KEY_VOID);
 					}else if(key.equals("main")) {
 						return getToken(TokenType.KEY_MAIN);
-					}else if(key.equals("string")) {
+					}else if(key.equals("String")) {
 						return getToken(TokenType.KEY_STRING);
 					}else if(key.equals("extends")) {
 						return getToken(TokenType.KEY_EXTENDS);

@@ -67,11 +67,17 @@ public class MjavaParser {
     		getNextToken();
     		return true;
     	}else {
-    		syntaxError("unexpected token: ");
+    		syntaxError("unexpected token:");
     		out.write(token.getToken());
     		getNextToken();
     		return false;
     	}
+    }
+    
+    public SyntaxNode start() throws IOException {
+    	getNextToken();
+    	SyntaxNode root = goal();
+    	return root;
     }
     
     /**
@@ -277,7 +283,7 @@ public class MjavaParser {
     	case KEY_PRINTLIN:
     		newNode = print_Statement();
     		return newNode;
-    	case ASSIGN:
+    	case IDENTIFIER:
     		newNode = assigan_Statement();
     		return newNode;
     	default:
@@ -363,13 +369,12 @@ public class MjavaParser {
 	
 	private SyntaxNode assigan_Statement() throws IOException {
 		SyntaxNode assignNode = null;
-		pushBackToken();
+		getNextToken();//读取IDENTIFIER后面的token
 		switch (token.getType()) {
-		case KEY_INT:
+		case ASSIGN:
 			assignNode = varAssigan_Statement();
 			return assignNode;
-		case RBRACKET:
-
+		case LBRACKET:
 			assignNode = arrayAssign_Statement();
 			return assignNode;
 		default:
@@ -384,7 +389,6 @@ public class MjavaParser {
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.VarAssign_Statement;
 		
-		match(TokenType.IDENTIFIER);
 		match(TokenType.ASSIGN);
 		SyntaxNode expNode = expression();
 		if(expNode != null) {
@@ -399,9 +403,6 @@ public class MjavaParser {
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.ArrayAssign_Statement;
 		
-		pushBackToken();
-		pushBackToken();
-		match(TokenType.IDENTIFIER);
 		match(TokenType.LBRACKET);
 		SyntaxNode expNode = expression();
 		if(expNode != null) {
@@ -414,6 +415,8 @@ public class MjavaParser {
 		match(TokenType.SEMICOLON);
 		return newNode;
 	}
+	
+	
 	
 	private SyntaxNode expression() throws IOException {
 		SyntaxNode newNode = new SyntaxNode();
@@ -699,5 +702,10 @@ public class MjavaParser {
 		newNode.nodeType = NodeType.A_exp;
 		newNode.a_exp = A_exp.null_A;
 		return newNode;
+	}
+	
+	public static void main(String[] args) throws IOException {
+		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\outFile\\lexier.txt", "E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\outFile\\parser.txt");
+		SyntaxNode root = parser.start();
 	}
 }

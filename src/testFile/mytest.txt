@@ -1,8 +1,11 @@
-int a = 222.33;
-int 1flow1 = 0;
-class hand#{}
-public void _APPosition_Input(){}
-if(myTest +> 1){}
-222.+;
-#;
-get(i).get(j);
+class WhatHappen {
+    public static void main(String[] args) {
+        MyClient mc;
+        int handle;
+
+        mc = new MyClient();
+        while(!false){
+            handle = mc.start(10, 10);
+        }
+    }
+}
