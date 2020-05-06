@@ -25,7 +25,7 @@ public class MjavaParser {
 	}};//expression的First集
 	int line = 1;
 	MjavaLexier lexier;
-	private FileWriter out = null;//输出信息
+	private BufferedWriter out = null;//输出信息
 	
 	/**
 	 * @param input 输入测试文件路径
@@ -34,9 +34,9 @@ public class MjavaParser {
 	 */
 	public MjavaParser(String input, String lexierOutPut, String parserOutput) {
 		lexier = new MjavaLexier(input, lexierOutPut);
-		FileWriter writer= null;
+		BufferedWriter writer= null;
 		try {
-			writer = new FileWriter(parserOutput);
+			writer = new BufferedWriter(new FileWriter(parserOutput));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -54,6 +54,7 @@ public class MjavaParser {
 	private void syntaxError(String message) throws IOException {
 		out.write("\n>>>");
 		out.write("Syntax error "+message+" at line "+lexier.line+"\n");
+		out.flush();
 	}
 	
     /**
@@ -69,6 +70,7 @@ public class MjavaParser {
     	}else {
     		syntaxError("unexpected token:");
     		out.write(token.getToken());
+    		out.flush();
     		getNextToken();
     		return false;
     	}
@@ -167,10 +169,10 @@ public class MjavaParser {
     	match(TokenType.RBRACKET);    	
     	match(TokenType.IDENTIFIER);   	
     	match(TokenType.RPAREN);   	
-    	match(TokenType.LBRACES);   	
-    	SyntaxNode statementChild = statement();
-    	
-    	mainClassNode.childList.add(statementChild);  	
+    	if(match(TokenType.LBRACES)) {
+    		SyntaxNode statementChild = statement();
+        	mainClassNode.childList.add(statementChild);  
+    	}	
     	match(TokenType.RBRACES);    	
     	match(TokenType.RBRACES);
 		return mainClassNode;
@@ -287,8 +289,11 @@ public class MjavaParser {
     		newNode = assigan_Statement();
     		return newNode;
     	default:
-    		syntaxError("Unexpected token at line: "+lexier.line);
+    		syntaxError("Invalid Token");
     		getNextToken();
+    		if(token.getType() == TokenType.SEMICOLON) {
+    			getNextToken();//跳过分号，否则可能出错
+    		}
     		return null;
     	}
     }
@@ -378,8 +383,11 @@ public class MjavaParser {
 			assignNode = arrayAssign_Statement();
 			return assignNode;
 		default:
-			syntaxError("Unexpected token at line: "+lexier.line);
+			syntaxError("Invalid statement");
 			getNextToken();
+			if(token.getType() == TokenType.SEMICOLON) {
+    			getNextToken();//跳过分号，否则可能出错
+    		}
     		return null;
 		}
 	}
@@ -445,7 +453,7 @@ public class MjavaParser {
 				newNode = new_Expression();//此时的token为IDENTIFIER
 				return newNode;
 			}else {
-				syntaxError("Unexpected token at line: "+lexier.line);
+				syntaxError("Unexpected token");
 	    		getNextToken();
 	    		return null;
 			}
@@ -456,8 +464,11 @@ public class MjavaParser {
 			newNode = brace_Expression();
 			return newNode;
 		default:
-			syntaxError("Unexpected token at line: "+lexier.line);
+			syntaxError("Unexpected token");
     		getNextToken();
+    		if(token.getType() == TokenType.SEMICOLON) {
+    			getNextToken();//跳过分号，否则可能出错
+    		}
     		return null;
 		}
 	}
@@ -613,7 +624,7 @@ public class MjavaParser {
 				newNode = method_A();
 				return newNode;
 			}else {
-				syntaxError("Unexpected token at line: "+lexier.line);
+				syntaxError("Unexpected token");
 	    		getNextToken();
 	    		return null;
 			}
@@ -637,7 +648,7 @@ public class MjavaParser {
 				newNode.childList.add(a_statementChild);
 			}
 		}else {
-			syntaxError("Unexpected token at line: "+lexier.line);
+			syntaxError("Unexpected token ");
     		getNextToken();
     		return null;
 		}
@@ -683,7 +694,8 @@ public class MjavaParser {
 			if(expChild != null) {
 				newNode.childList.add(expChild);
 			}
-			while(match(TokenType.COMMA)) {
+			while(token.getType() == TokenType.COMMA) {
+				getNextToken();
 				SyntaxNode _expChild = expression();
 				if(_expChild != null) {
 					newNode.childList.add(_expChild);
@@ -705,7 +717,7 @@ public class MjavaParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\outFile\\lexier.txt", "E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\outFile\\parser.txt");
+		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "C:\\Users\\Alexwell\\Desktop\\lexier.txt", "C:\\Users\\Alexwell\\Desktop\\parser.txt");
 		SyntaxNode root = parser.start();
 	}
 }

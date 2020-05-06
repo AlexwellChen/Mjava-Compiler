@@ -355,7 +355,7 @@ public class MjavaLexier {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		MjavaLexier.start("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\test1.txt", "C:\\Users\\Alexwell\\Desktop\\myTestOut.txt");
+		MjavaLexier.start("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "C:\\Users\\Alexwell\\Desktop\\lexier.txt");
 	}
 
 }
