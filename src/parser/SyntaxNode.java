@@ -63,6 +63,8 @@ public class SyntaxNode {
 	public Statement statement;
 	public Expression expression;
 	public A_exp a_exp;
-	public int line;
+	public String id;
 	public var_Type expType;
+	public String leftString;
+	public String rightString;
 }

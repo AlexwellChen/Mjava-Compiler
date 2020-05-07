@@ -60,9 +60,9 @@ public class MjavaLexier {
 		}
 	}
 	
-	public void pushBackWhitSpace() {
+	public void pushBackChar(char  c) {
 		try {
-			in.unread(' '); // 将一个空格回退到流中
+			in.unread(c); // 将一个空格回退到流中
 			column--;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -140,6 +140,7 @@ public class MjavaLexier {
 							getNext();
 						}
 						out.write("get nextToken error! \n");
+						out.flush();
 						pushBack();
 						return getToken(TokenType.ILLEGAL_TOKEN);
 					}
@@ -160,6 +161,7 @@ public class MjavaLexier {
 							return getToken(TokenType.INTEGERLITERAL);
 						}
 						out.write("get nextToken error! \n");
+						out.flush();
 						while(Character.isLetter(ch)) {
 							getNext();
 						}
@@ -238,6 +240,7 @@ public class MjavaLexier {
 					out.write("get nextToken error! ");
 					out.write("Find illegal character "+ch);
 					out.write(" At line "+line+", column "+column+"\n");
+					out.flush();
 				}
 				break;
 				
@@ -277,6 +280,7 @@ public class MjavaLexier {
 						out.write("get nextToken error! ");
 						out.write("Find illegal character &");
 						out.write(" At line "+line+"\n");
+						out.flush();
 						return getToken(TokenType.ILLEGAL_TOKEN);
 					}
 				}
@@ -290,6 +294,7 @@ public class MjavaLexier {
 						out.write("get nextToken error! ");
 						out.write("Find illegal character "+'.');
 						out.write(" At line "+line+"\n");
+						out.flush();
 						while(!Character.isWhitespace(ch)) {
 							getNext();
 						}
@@ -311,6 +316,7 @@ public class MjavaLexier {
 					out.write("get nextToken error! ");
 					out.write("Find illegal character "+ch);
 					out.write(" At line "+line+", column "+column+"\n");
+					out.flush();
 					while(Character.isLetter(ch)||ch=='_'){
 						getNext();
 						if(!(Character.isLetter(ch)||ch=='_')) {
@@ -324,6 +330,7 @@ public class MjavaLexier {
 			default:
 				out.write("Get nextToken error! ");
 				out.write("Find illegal state:"+state+"\n");
+				out.flush();
 				System.exit(1);
 
 			}

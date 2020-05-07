@@ -26,22 +26,26 @@ public class MjavaParser {
 	int line = 1;
 	MjavaLexier lexier;
 	private BufferedWriter out = null;//输出信息
+	private BufferedWriter astOut = null;//输出信息
 	
 	/**
 	 * @param input 输入测试文件路径
 	 * @param lexierOutPut 词法分析器输出文件
 	 * @param parserOutput 语法分析器输出文件
 	 */
-	public MjavaParser(String input, String lexierOutPut, String parserOutput) {
+	public MjavaParser(String input, String lexierOutPut, String parserOutput, String astOutput) {
 		lexier = new MjavaLexier(input, lexierOutPut);
 		BufferedWriter writer= null;
+		BufferedWriter astwriter= null;
 		try {
 			writer = new BufferedWriter(new FileWriter(parserOutput));
+			astwriter = new BufferedWriter(new FileWriter(astOutput));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
 		out = writer;
+		astOut = astwriter;
 	}
 	
 	//工具函数定义部分
@@ -71,7 +75,7 @@ public class MjavaParser {
     		syntaxError("unexpected token:");
     		out.write(token.getToken());
     		out.flush();
-    		getNextToken();
+    		//getNextToken();
     		return false;
     	}
     }
@@ -86,10 +90,11 @@ public class MjavaParser {
      * 回退当前token到字符流中
      */
     public void pushBackToken() {
-    	lexier.pushBackWhitSpace();
+    	lexier.pushBackChar(' ');
     	int length = token.getToken().length();
-    	for(int i = 0; i<length; i++) {
-    		lexier.pushBack();
+    	String tokenString = token.getToken();
+    	for(int i = length-1; i>=0; i--) {
+    		lexier.pushBackChar(tokenString.charAt(i));
     	}
     	token = preToken;
 		preToken = ppreToken;
@@ -123,14 +128,12 @@ public class MjavaParser {
     			return true;//int
     		}
     	}else if(token.getToken().equals("boolean")) {
-    		getNextToken();
+    		//getNextToken();
 			return true;//boolean
     	}else if(token.getType() == TokenType.IDENTIFIER) {
-    		getNextToken();
+    		//getNextToken();
 			return true;//identifier
     	}else {
-    		getNextToken();
-    		syntaxError("unexpected type");
     		return false;
     	}
     }
@@ -141,6 +144,7 @@ public class MjavaParser {
 
     private SyntaxNode goal() throws IOException {
     	SyntaxNode goal_Node = new SyntaxNode();
+    	goal_Node.nodeType = NodeType.Declaration;
     	goal_Node.declaration = Declaration.Goal;
     	SyntaxNode mainClassChild = mainClass();
     	goal_Node.childList.add(mainClassChild);
@@ -187,8 +191,14 @@ public class MjavaParser {
     	
     	match(TokenType.IDENTIFIER);
     	
-    	if(match(TokenType.KEY_EXTENDS)) {
-    		match(TokenType.IDENTIFIER);
+    	if(token.getType() == TokenType.KEY_EXTENDS) {
+    		getNextToken();
+    		//match(TokenType.IDENTIFIER);
+    		if(token.getType() == TokenType.IDENTIFIER) {
+    			getNextToken();
+    		}else {
+    			syntaxError("unexpected Token");
+    		}
     	}
     	
     	match(TokenType.LBRACES);
@@ -225,7 +235,6 @@ public class MjavaParser {
     			}
     		}else {//如果没有匹配到“[”，那么将当前token回退到字符流中
     			varDeclaratioNode.expType = var_Type.Int;
-    			pushBackToken();//将当前的Token回退到字符流中
     		}
     	}else if(token.getToken().equals("boolean")) {
     		getNextToken();
@@ -238,8 +247,22 @@ public class MjavaParser {
     		syntaxError("unexpected VarType");
     	}
     	
-    	match(TokenType.IDENTIFIER);
-    	match(TokenType.SEMICOLON);
+    	if(match(TokenType.IDENTIFIER)) {
+    		
+    	}else {
+    		getNextToken();
+    	}
+    	
+//    	match(TokenType.SEMICOLON);
+    	if(token.getType() == TokenType.ILLEGAL_TOKEN) {//得到/
+    		syntaxError("get illegal token");
+    		getNextToken();
+    	}else if(token.getType() == TokenType.PLUS||token.getType() == TokenType.MINUS||token.getType() == TokenType.TIMES||token.getType() == TokenType.LESS){
+    		syntaxError("get unexpected symbol");
+    		getNextToken();
+    	}else {
+    		match(TokenType.SEMICOLON);
+    	}
 		return varDeclaratioNode;
 	}
     
@@ -250,22 +273,41 @@ public class MjavaParser {
     	
     	match(TokenType.KEY_PUBLIC);
     	matchType();
+    	getNextToken();
     	match(TokenType.IDENTIFIER);
     	match(TokenType.LPAREN);
     	if(matchType()) {
+    		getNextToken();
     		match(TokenType.IDENTIFIER);
-    		while(match(TokenType.COMMA)) {
+    		while(token.getType() == TokenType.COMMA) {
+    			getNextToken();
     			matchType();
+    			getNextToken();
     			match(TokenType.IDENTIFIER);
     		}
     	}
     	match(TokenType.RPAREN);
     	match(TokenType.LBRACES);
-    	while(matchType()) {
-    		pushBackToken();//将type的token回退，便于创建VarDeclaration节点
+    	while(matchType()) {//VarDeclaration部份
     		SyntaxNode varDeclarationChildNode = varDeclaration();
     		methodDeclaratioNode.childList.add(varDeclarationChildNode);
     	}
+    	//Statement部份
+    	if(token.getType() == TokenType.LBRACES) {
+    		match(TokenType.LBRACES); 
+    		while(!token.getToken().equals("}")) {//由于}与seriesNode无关，所以将match放在statement()中
+    			SyntaxNode statementchildNode = statement();
+    			if(statementchildNode != null) {
+    				methodDeclaratioNode.childList.add(statementchildNode);
+    			}
+    		}
+    		match(TokenType.RBRACES);
+    	}
+    	match(TokenType.KEY_RETURN);
+    	SyntaxNode expChildNode = expression();
+    	methodDeclaratioNode.childList.add(expChildNode);
+    	match(TokenType.SEMICOLON);
+    	match(TokenType.RBRACES);
 		return methodDeclaratioNode;
 	}
     
@@ -302,7 +344,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.Series_Statement;
-		
+		newNode.id = "{Statement}";
 		match(TokenType.LBRACES); 
 		while(!token.getToken().equals("}")) {//由于}与seriesNode无关，所以将match放在statement()中
 			SyntaxNode childNode = statement();
@@ -317,7 +359,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.If_Statement;
-		
+		newNode.id = "if";
 		match(TokenType.KEY_IF);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
@@ -341,7 +383,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.While_Statement;
-		
+		newNode.id = "while";
 		match(TokenType.KEY_WHILE);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
@@ -360,7 +402,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.Print_Statement;
-		
+		newNode.id = "println";
 		match(TokenType.KEY_PRINTLIN);
 		match(TokenType.LPAREN);
 		SyntaxNode expNode = expression();
@@ -396,7 +438,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.VarAssign_Statement;
-		
+		newNode.id = preToken.getToken();
 		match(TokenType.ASSIGN);
 		SyntaxNode expNode = expression();
 		if(expNode != null) {
@@ -410,7 +452,7 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Statement;
 		newNode.statement = Statement.ArrayAssign_Statement;
-		
+		newNode.id = preToken.getToken();
 		match(TokenType.LBRACKET);
 		SyntaxNode expNode = expression();
 		if(expNode != null) {
@@ -477,8 +519,8 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.Expression;
 		newNode.expression = Expression.Int_Expression;
-		
 		match(TokenType.INTEGERLITERAL);
+		newNode.id = preToken.getToken();
 		SyntaxNode a_statementChild = a_Statement();
 		if(a_statementChild != null) {
 			newNode.childList.add(a_statementChild);
@@ -637,8 +679,11 @@ public class MjavaParser {
 		SyntaxNode newNode = new SyntaxNode();
 		newNode.nodeType = NodeType.A_exp;
 		newNode.a_exp = A_exp.op_A;
+		newNode.id = token.getToken();
+		newNode.leftString = preToken.getToken();
 		TokenType currentType= token.getType();
 		if(currentType == TokenType.LOGICAL_AND || currentType == TokenType.LESS || currentType == TokenType.PLUS || currentType ==TokenType. MINUS || currentType == TokenType.TIMES) {
+			getNextToken();
 			SyntaxNode expChild = expression();
 			if(expChild != null) {
 				newNode.childList.add(expChild);
@@ -717,7 +762,51 @@ public class MjavaParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "C:\\Users\\Alexwell\\Desktop\\lexier.txt", "C:\\Users\\Alexwell\\Desktop\\parser.txt");
+		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "C:\\Users\\Alexwell\\Desktop\\lexier.txt", "C:\\Users\\Alexwell\\Desktop\\SyntaxOut.txt","C:\\Users\\Alexwell\\Desktop\\ast.txt");
 		SyntaxNode root = parser.start();
+		parser.travalAST(root, 0);
+	}
+	
+	public void travalAST(SyntaxNode node, int level) throws IOException {
+		String message = "";
+		switch(node.nodeType) {
+		case Declaration:
+			message += "第"+level+"层\n";
+			message += " Type: "+node.declaration+"\n";
+			break;
+		case Statement:
+			message += "第"+level+"层\n";
+			message += " Type: "+node.statement;
+			if(node.statement == Statement.VarAssign_Statement || node.statement == Statement.ArrayAssign_Statement) {
+				message += " Target val: "+node.id;
+			}
+			message += "\n";
+			break;
+		case Expression:
+			message += "第"+level+"层\n";
+			message += " Type: "+node.expression;
+			message += "\n";
+			break;
+		case A_exp:
+			message += "第"+level+"层\n";
+			message += " Type:"+node.a_exp;
+			if(node.a_exp == A_exp.op_A &&(node.id.equals("+")||node.id.equals("-")||node.id.equals("*"))) {
+				message += " opreator: "+node.id;
+				message += " left: "+node.leftString;
+			}
+			message += "\n";
+			break;
+		default:
+			message += " UnKnow Type\n";
+			break;
+		}
+		astOut.write(message);
+		for(SyntaxNode child : node.childList) {
+			if((child.nodeType == NodeType.A_exp && child.a_exp == A_exp.null_A)) {
+				continue;
+			}
+			travalAST(child, level+1);
+		}
+		astOut.flush();
 	}
 }

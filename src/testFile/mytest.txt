@@ -1,14 +1,16 @@
 class WhatHappen {
     public static void main(String[] args) {
-    {
-        MyClient mc;
-        int handle;
-
-        mc = new MyClient();
-        while(!false){
-            handle = mc.start(10, 10);
-            test = mc.length;
+            while(true){
+                System.out.println(a);
             }
+    }
+}
+class MyClient extends Client{
+    public int start(int host, int port){
+        {
+            handle = this.run();
+            x = 1 + a ;
         }
+        return handle;
     }
 }
