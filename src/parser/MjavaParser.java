@@ -101,6 +101,10 @@ public class MjavaParser {
 		ppreToken = pppreToken;
     }
     
+    /**
+     * 获取下一个token
+     * @throws IOException
+     */
     public void getNextToken() throws IOException {
     	pppreToken = ppreToken;
     	ppreToken = preToken;
@@ -762,7 +766,7 @@ public class MjavaParser {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		MjavaParser parser = new MjavaParser("E:\\Users\\Alexwell\\eclipse_workspace\\Mjava\\src\\testFile\\mytest.txt", "C:\\Users\\Alexwell\\Desktop\\lexier.txt", "C:\\Users\\Alexwell\\Desktop\\SyntaxOut.txt","C:\\Users\\Alexwell\\Desktop\\ast.txt");
+		MjavaParser parser = new MjavaParser("src\\testFile\\mytest.txt", "src\\outFile\\lexier.txt", "src\\outFile\\SyntaxOut.txt","src\\outFile\\ast.txt");
 		SyntaxNode root = parser.start();
 		parser.travalAST(root, 0);
 	}
