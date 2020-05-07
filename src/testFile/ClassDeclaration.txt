@@ -1,0 +1,17 @@
+class WhatHappen {
+    public static void main(String[] args) {
+        {
+            mc = new MyClient();
+        }
+    }
+}
+
+class MyClient extends{
+    public int start(int host, int port){
+        int handle;
+        {
+            handle = this.run();
+        }
+        return handle;
+    }
+}

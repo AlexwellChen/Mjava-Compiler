@@ -1,0 +1,17 @@
+class WhatHappen {
+    public static void main(String[] args) {
+        {
+            mc = new MyClient();
+        }
+    }
+}
+
+class MyClient{
+    public start(int host, int port){
+        int handle;
+        boolean test
+        boolean test/
+        boolean test+
+        return handle;
+    }
+}

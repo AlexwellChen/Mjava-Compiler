@@ -1,0 +1,9 @@
+class WhatHappen {
+    public static void main(String[] args) {
+            while(true){
+                System.out.println(123);
+                System.out.println(new mc().length);
+                System.out.println(new ());
+            }
+    }
+}

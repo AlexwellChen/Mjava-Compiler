@@ -1,0 +1,34 @@
+第0层
+ Type: Goal
+第1层
+ Type: MainClass
+第2层
+ Type: While_Statement
+第3层
+ Type: True_Expression
+第3层
+ Type: Series_Statement
+第4层
+ Type: Print_Statement
+第5层
+ Type: Identifier_Expression
+第1层
+ Type: ClassDeclaration
+第2层
+ Type: MethodDeclaration
+第3层
+ Type: VarAssign_Statement Target val: handle
+第4层
+ Type: Identifier_Expression
+第5层
+ Type:method_A
+第3层
+ Type: VarAssign_Statement Target val: x
+第4层
+ Type: Int_Expression
+第5层
+ Type:op_A opreator: + left: 1 
+第6层
+ Type: Identifier_Expression
+第3层
+ Type: Identifier_Expression
